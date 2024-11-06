@@ -1,4 +1,3 @@
-//VERSION 00001
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -18,70 +17,6 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 MIDI_CREATE_INSTANCE(HardwareSerial, Serial1, MIDIINPUT1); // Use Hardware UART1 for INPUT 2
 MIDI_CREATE_INSTANCE(HardwareSerial, Serial2, MIDIINPUT2); // Use Hardware UART2 for INPUT 1
 MIDI_CREATE_INSTANCE(HardwareSerial, Serial3, MIDIOUTPUT); // Use Hardware UART3 for MERGE OUT
-
-void setup() {
-    pinMode(CSW_PIN, INPUT_PULLUP); // Set CSW_PIN as input for the SPDT master clock switch (non-serial, non-I2C)
-    pinMode(LED_BUILTIN, OUTPUT); // Set the built-in LED as an output
-
-    // Initialize Serial1, Serial2, and Serial3 for MIDI communication (31250 baud rate)
-    Serial1.begin(31250); // Initialize UART1 for MIDIINPUT1
-    Serial2.begin(31250); // Initialize UART2 for MIDIINPUT2
-    Serial3.begin(31250); // Initialize UART3 for MIDIOUTPUT
-  
-    MIDIINPUT1.begin(MIDI_CHANNEL_OMNI);  // Listen to all MIDI channels on MIDIINPUT1
-    MIDIINPUT2.begin(MIDI_CHANNEL_OMNI);  // Listen to all MIDI channels on MIDIINPUT2
-
-    // Initialize I2C for OLED
-    Wire.begin();
-    display.begin(SSD1306_SWITCHCAPVCC, OLED_I2C_ADDRESS);
-    display.setTextSize(1);
-    display.setTextColor(SSD1306_WHITE);
-    display.clearDisplay();
-    display.setCursor(0, 0);
-    display.print("MEGA MIDI MERGE");
-    display.setCursor(0, 10);
-    display.print(VERSION);
-    display.setCursor(0, 20);
-    display.print("rusaaKKMODS @ 2024");
-    display.display();
-  
-    // Set a generic handler for MIDIINPUT1 and MIDIINPUT2 to forward all messages
-    MIDIINPUT1.setHandleMessage(forwardMessageInput1);
-    MIDIINPUT2.setHandleMessage(forwardMessageInput2);
-}
-
-void loop() {
-  static bool lastMasterClock1 = true;
-    bool masterClock1 = digitalRead(CSW_PIN) == HIGH;
-
-    // If the clock source has changed, update the master clock status
-    if (masterClock1 != lastMasterClock1) {
-        lastMasterClock1 = masterClock1;
-        display.clearDisplay();
-        display.setCursor(0, 0);
-        display.print("MEGA MIDI MERGE");
-        display.setCursor(0, 10);
-        display.print("Master: ");
-        display.print(masterClock1 ? "MIDIINPUT1" : "MIDIINPUT2");
-        display.setCursor(0, 20);
-        display.print("rusaaKKMODS @ 2024");
-        display.display();
-    }
-
-    // Continuously read from all MIDI inputs
-    MIDIINPUT1.read();
-    MIDIINPUT2.read();
-}
-
-// Generic MIDI Message handler to forward all MIDI1 messages to MIDI2 and MIDI3
-void forwardMessageInput1(const midi::Message<128>& message) {
-    forwardMessage(MIDIINPUT1, message);
-}
-
-// Generic MIDI Message handler to forward all MIDI2 messages to MIDI1 and MIDI3
-void forwardMessageInput2(const midi::Message<128>& message) {
-    forwardMessage(MIDIINPUT2, message);
-}
 
 // Function to forward a MIDI message to a given MIDI output
 template <typename T>
@@ -156,3 +91,74 @@ void forwardMessage(midi::MidiInterface<T> &midiInput, const midi::Message<128>&
     }
 }
 
+// Generic MIDI Message handler to forward all MIDI1 messages to MIDI2 and MIDI3
+void forwardMessageInput1(const midi::Message<128>& message) {
+    forwardMessage(MIDIINPUT1, message);
+}
+
+// Generic MIDI Message handler to forward all MIDI2 messages to MIDI1 and MIDI3
+void forwardMessageInput2(const midi::Message<128>& message) {
+    forwardMessage(MIDIINPUT2, message);
+}
+
+void setup() {
+    pinMode(CSW_PIN, INPUT_PULLUP); // Set CSW_PIN as input for the SPDT master clock switch (non-serial, non-I2C)
+    pinMode(LED_BUILTIN, OUTPUT); // Set the built-in LED as an output
+
+    // Initialize Serial1, Serial2, and Serial3 for MIDI communication (31250 baud rate)
+    Serial1.begin(31250); // Initialize UART1 for MIDIINPUT1
+    Serial2.begin(31250); // Initialize UART2 for MIDIINPUT2
+    Serial3.begin(31250); // Initialize UART3 for MIDIOUTPUT
+  
+    MIDIINPUT1.begin(MIDI_CHANNEL_OMNI);  // Listen to all MIDI channels on MIDIINPUT1
+    MIDIINPUT2.begin(MIDI_CHANNEL_OMNI);  // Listen to all MIDI channels on MIDIINPUT2
+
+    // Initialize I2C for OLED
+    Wire.begin();
+    display.begin(SSD1306_SWITCHCAPVCC, OLED_I2C_ADDRESS);
+    display.setTextSize(1);
+    display.setTextColor(SSD1306_WHITE);
+    display.clearDisplay();
+    display.setCursor(0, 0);
+    display.print("MEGA MIDI MERGE");
+    display.setCursor(0, 10);
+    display.print(VERSION);
+    display.setCursor(0, 20);
+    display.print("rusaaKKMODS @ 2024");
+    display.display();
+  
+    // Set a generic handler for MIDIINPUT1 and MIDIINPUT2 to forward all messages
+    MIDIINPUT1.setHandleMessage(forwardMessageInput1);
+    MIDIINPUT2.setHandleMessage(forwardMessageInput2);
+}
+
+/**
+ * @brief Main loop for the MEGA MIDI MERGE
+ *
+ * This function continuously runs in the background and does the following:
+ * 1. Checks if the master clock source has changed (using the SPDT switch)
+ * 2. If the master clock source has changed, updates the OLED display with the current master clock status
+ * 3. Continuously reads from all MIDI inputs (MIDIINPUT1 and MIDIINPUT2) to forward messages to the merge output
+ */
+void loop() {
+  static bool lastMasterClock1 = true;
+    bool masterClock1 = digitalRead(CSW_PIN) == HIGH;
+
+    // If the clock source has changed, update the master clock status
+    if (masterClock1 != lastMasterClock1) {
+        lastMasterClock1 = masterClock1;
+        display.clearDisplay();
+        display.setCursor(0, 0);
+        display.print("MEGA MIDI MERGE");
+        display.setCursor(0, 10);
+        display.print("Master: ");
+        display.print(masterClock1 ? "MIDIINPUT1" : "MIDIINPUT2");
+        display.setCursor(0, 20);
+        display.print("rusaaKKMODS @ 2024");
+        display.display();
+    }
+
+    // Continuously read from all MIDI inputs
+    MIDIINPUT1.read();
+    MIDIINPUT2.read();
+}
