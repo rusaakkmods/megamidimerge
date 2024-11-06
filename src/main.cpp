@@ -9,7 +9,10 @@
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 32
 #define OLED_I2C_ADDRESS 0x3C
-#define CSW_PIN 7
+#define MASTER_BUTTON_PIN 7
+#define CLOCK_OUT1_PIN 8  // Analog Clock Output 1
+#define CLOCK_OUT2_PIN 9  // Analog Clock Output 2
+#define RESOLUTION_BUTTON_PIN 10  // Button to change clock pulse resolution
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
@@ -26,15 +29,20 @@ const int numerator = 4;                   // Fixed numerator for 4/4
 const int denominator = 4;                 // Fixed denominator for 4/4 (quarter note)
 bool masterClock1 = true;
 
+// Variables for Clock Output
+volatile int clockPulseCount = 0;          // Count of MIDI Clock pulses for analog clock
+int clockResolution = 4;                   // Clock pulse resolution (1, 2, 4, 8, 16, 32 pulses per beat)
+
 void printDisplay() {
     display.clearDisplay();
     display.setCursor(0, 0);
     display.print("MEGA MIDI MERGE");
     display.setCursor(0, 10);
     display.print(masterClock1 ? "MIDIINPUT1 : " : "MIDIINPUT2 : ");
-    display.print(bpm);
+    display.print(bpm, 0);
     display.setCursor(0, 20);
-    display.print("rusaaKKMODS @ 2024");
+    display.print("Clock Rate: 1/");
+    display.print(clockResolution);
     display.display();
 }
 
@@ -48,6 +56,28 @@ void calculateBPM() {
   clockCount = 0; // Reset the clock count after calculation
 }
 
+// Function to handle clock pulse generation for analog clock output
+void generateClockPulse() {
+    clockPulseCount++;
+    if (clockPulseCount >= (24 / clockResolution)) { // Generate a pulse based on the selected resolution
+        clockPulseCount = 0;
+        // Toggle Clock Output Pins
+        digitalWrite(CLOCK_OUT1_PIN, HIGH);
+        digitalWrite(CLOCK_OUT2_PIN, HIGH);
+        delay(5);  // Short pulse width
+        digitalWrite(CLOCK_OUT1_PIN, LOW);
+        digitalWrite(CLOCK_OUT2_PIN, LOW);
+    }
+}
+
+// Function to change clock pulse resolution
+void changeClockResolution() {
+    clockResolution *= 2;
+    if (clockResolution > 32) {
+        clockResolution = 1; // Cycle back to 1 after reaching 8
+    }
+}
+
 // Function to forward a MIDI message to a given MIDI output
 template <typename T>
 void forwardMessage(midi::MidiInterface<T> &midiInput, const midi::Message<128>& message) {
@@ -59,8 +89,10 @@ void forwardMessage(midi::MidiInterface<T> &midiInput, const midi::Message<128>&
         return; // Do not forward these messages if not from the master clock
     }
 
-    // BPM Counter
-    if (type == midi::Clock) clockCount++;
+    if (type == midi::Clock) {
+        clockCount++; // BPM Counter
+        generateClockPulse(); // Generate analog clock pulse
+    }
   
     byte channel = message.channel;
     byte data1 = message.data1;
@@ -134,8 +166,11 @@ void forwardMessageInput2(const midi::Message<128>& message) {
 }
 
 void setup() {
-    pinMode(CSW_PIN, INPUT_PULLUP); // Set CSW_PIN as input for the SPDT master clock switch (non-serial, non-I2C)
+    pinMode(MASTER_BUTTON_PIN, INPUT_PULLUP); // Set CSW_PIN as input for the SPDT master clock switch (non-serial, non-I2C)
     pinMode(LED_BUILTIN, OUTPUT); // Set the built-in LED as an output
+    pinMode(CLOCK_OUT1_PIN, OUTPUT); // Set CLOCK_OUT1_PIN as output for analog clock
+    pinMode(CLOCK_OUT2_PIN, OUTPUT); // Set CLOCK_OUT2_PIN as output for analog clock
+    pinMode(RESOLUTION_BUTTON_PIN, INPUT_PULLUP); // Set RESOLUTION_BUTTON_PIN as input for resolution button
 
     // Initialize Serial1, Serial2, and Serial3 for MIDI communication (31250 baud rate)
     Serial1.begin(31250); // Initialize UART1 for MIDIINPUT1
@@ -173,7 +208,7 @@ void setup() {
  * 3. Continuously reads from all MIDI inputs (MIDIINPUT1 and MIDIINPUT2) to forward messages to the merge output
  */
 void loop() {
-    masterClock1 = digitalRead(CSW_PIN) == HIGH;
+    masterClock1 = digitalRead(MASTER_BUTTON_PIN) == HIGH;
 
     // Update BPM every second
     unsigned long currentTime = millis();
@@ -181,6 +216,12 @@ void loop() {
         calculateBPM();
         lastBPMTime = currentTime;
         printDisplay();
+    }
+
+    //Change clock resolution if button is pressed
+    if (digitalRead(RESOLUTION_BUTTON_PIN) == LOW) {
+        changeClockResolution();
+        delay(200); // Debounce delay
     }
 
     // Continuously read from all MIDI inputs
