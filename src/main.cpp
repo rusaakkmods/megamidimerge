@@ -18,17 +18,49 @@ MIDI_CREATE_INSTANCE(HardwareSerial, Serial1, MIDIINPUT1); // Use Hardware UART1
 MIDI_CREATE_INSTANCE(HardwareSerial, Serial2, MIDIINPUT2); // Use Hardware UART2 for INPUT 1
 MIDI_CREATE_INSTANCE(HardwareSerial, Serial3, MIDIOUTPUT); // Use Hardware UART3 for MERGE OUT
 
+// Variables for BPM
+volatile unsigned long clockCount = 0;   // Count of MIDI Clock messages
+unsigned long lastBPMTime = 0;            // Last time BPM was calculated
+float bpm = 0;                             // Calculated BPM
+const int numerator = 4;                   // Fixed numerator for 4/4
+const int denominator = 4;                 // Fixed denominator for 4/4 (quarter note)
+bool masterClock1 = true;
+
+void printDisplay() {
+    display.clearDisplay();
+    display.setCursor(0, 0);
+    display.print("MEGA MIDI MERGE");
+    display.setCursor(0, 10);
+    display.print(masterClock1 ? "MIDIINPUT1 : " : "MIDIINPUT2 : ");
+    display.print(bpm);
+    display.setCursor(0, 20);
+    display.print("rusaaKKMODS @ 2024");
+    display.display();
+}
+
+void calculateBPM() {
+  // Calculate BPM based on the number of clock messages received
+  if (numerator > 0) {
+    bpm = (clockCount / 24.0) * 60.0 * (4.0 / numerator); // Adjust BPM based on fixed numerator
+  } else {
+    bpm = 0; // Prevent division by zero
+  }
+  clockCount = 0; // Reset the clock count after calculation
+}
+
 // Function to forward a MIDI message to a given MIDI output
 template <typename T>
 void forwardMessage(midi::MidiInterface<T> &midiInput, const midi::Message<128>& message) {
     byte type = message.type;
-    bool masterClock1 = digitalRead(CSW_PIN) == HIGH;
 
     // Filter out clock and timing-related messages if not from the master
     if ((type == midi::Clock || type == midi::Start || type == midi::Continue || type == midi::Stop || type == midi::ActiveSensing) &&
         ((masterClock1 && &midiInput != &MIDIINPUT1) || (!masterClock1 && &midiInput != &MIDIINPUT2))) {
         return; // Do not forward these messages if not from the master clock
     }
+
+    // BPM Counter
+    if (type == midi::Clock) clockCount++;
   
     byte channel = message.channel;
     byte data1 = message.data1;
@@ -141,21 +173,14 @@ void setup() {
  * 3. Continuously reads from all MIDI inputs (MIDIINPUT1 and MIDIINPUT2) to forward messages to the merge output
  */
 void loop() {
-  static bool lastMasterClock1 = true;
-    bool masterClock1 = digitalRead(CSW_PIN) == HIGH;
+    masterClock1 = digitalRead(CSW_PIN) == HIGH;
 
-    // If the clock source has changed, update the master clock status
-    if (masterClock1 != lastMasterClock1) {
-        lastMasterClock1 = masterClock1;
-        display.clearDisplay();
-        display.setCursor(0, 0);
-        display.print("MEGA MIDI MERGE");
-        display.setCursor(0, 10);
-        display.print("Master: ");
-        display.print(masterClock1 ? "MIDIINPUT1" : "MIDIINPUT2");
-        display.setCursor(0, 20);
-        display.print("rusaaKKMODS @ 2024");
-        display.display();
+    // Update BPM every second
+    unsigned long currentTime = millis();
+    if (currentTime - lastBPMTime >= 1000) { // Calculate BPM every second
+        calculateBPM();
+        lastBPMTime = currentTime;
+        printDisplay();
     }
 
     // Continuously read from all MIDI inputs
