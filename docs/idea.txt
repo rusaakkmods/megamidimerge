@@ -1,0 +1,23 @@
+Main ideas:
+
+1. Core Function: Merges MIDI data from two MIDI inputs and sends it to MIDI 1 output.
+2. Master Clock Selection: An SPDT switch allows you to choose which MIDI input provides the master clock.
+3. Analog Clock Output: Generates an analog clock signal synchronized with the MIDI clock.
+4. Clock Pulse Rate: A knob to control through different clock pulse per quarter note (1 to 24 ppqn) for the analog clock output.
+5. Active Master Input Display: Shows the active MIDI Input that act as Master Clock on an OLED display.
+6. BPM Display: Displays the Beats Per Minute (BPM) in 4/4 time signature based on selected master clock. 
+7. PPQN Display: Pulse Per Quarter Note (PPQ) based on setting selected.
+8. Analog Clock Input: Override MIDI master clock.
+
+Features:
+1. Using Arduino MEGA 2560 Pro
+2. 2 MIDI Input (as Input 1 and Input 2)
+3. 2 MIDI Thru (from MIDI input 1 and MIDI Input 2)
+4. a MIDI Output (Merged from both MIDI Input)
+3. a 3.5mm TRS Socket as a second MIDI Output (independent copy of the first MIDI Output)
+5. an Analog Clock Out based on Master clock
+6. an Analog Clock In that should override the MIDI Clock when plugged
+7. a Master Clock switch between Input 1 or Input 2
+8. a Knob to control Clock out ppqn.
+9. USB should power the system and should be recognized by Computer as MIDI Device transmitting merged MIDI Output
+10. an OLED Display to view Active Master information

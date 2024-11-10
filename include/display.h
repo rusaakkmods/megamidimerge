@@ -26,11 +26,13 @@ void initDisplay() {
     display.clearDisplay();
     display.setCursor(0, 0);
     display.print(PRODUCT_NAME);
+    display.print(" ");
     display.print(VERSION);
     display.setCursor(0, 10);
-    display.print("Starting...");
-    display.setCursor(0, 20);
     display.print(RUSAAKKMODS);
+    display.setCursor(0, 20);
+    display.print("Starting...");
+
     display.display();
 }
 
@@ -54,6 +56,7 @@ void printDisplay(const char* master, float bpm, int clockResolution) {
     display.print(PRODUCT_NAME);
     display.setCursor(0, 10);
     display.print(master);
+    display.print(" : ");
     display.print(bpm, 0);
     display.setCursor(0, 20);
     display.print("Clock Rate: ");

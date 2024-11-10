@@ -20,7 +20,7 @@ void loop() {
     //Change clock resolution if button is pressed
     if (digitalRead(CLOCK_BUTTON_PIN) == LOW) {
         changeClockResolution();
-        delay(200); // Debounce delay
+        delay(100); // Debounce delay
     }
 
     // Read all MIDI Input
