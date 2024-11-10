@@ -39,7 +39,7 @@ bool isMasterInput1() {
 }
 
 bool isClockInPlugged() {
-  return analogRead(CLOCK_IN_PLUG_DETECT_PIN) < 100;  // Plug is inserted threshbold input less than 100
+    return analogRead(CLOCK_IN_PLUG_DETECT_PIN) < 100;  // Plug is inserted threshbold input less than 100
 }
 
 void printDisplay() {
@@ -119,16 +119,15 @@ template <typename T>
 void forwardMessage(midi::MidiInterface<T> &midiInput, const midi::Message<128>& message) {
     byte messageType = message.type;
 
-    // Define boolean variables for better readability
-    bool isMasterInput1Active = isMasterInput1();
-    bool isMidiInput1 = (&midiInput == &MIDIINPUT1);
-    bool isMidiInput2 = (&midiInput == &MIDIINPUT2);
-    bool isSendRealTimeMessage = ((isMasterInput1Active && isMidiInput1) || (!isMasterInput1Active && isMidiInput2)) && !isClockInPlugged();
-
     // Filter out clock and timing-related messages if not from the master
     if (messageType == midi::Clock || messageType == midi::Start || messageType == midi::Continue || messageType == midi::Stop || messageType == midi::ActiveSensing) {
-        if (isSendRealTimeMessage) {
-          sendRealTimeMessage(messageType);
+        if (!isClockInPlugged()) {
+          bool isMasterInput1Active = isMasterInput1();
+          bool isMidiInput1 = (&midiInput == &MIDIINPUT1);
+          bool isMidiInput2 = (&midiInput == &MIDIINPUT2);
+          if ((isMasterInput1Active && isMidiInput1) || (!isMasterInput1Active && isMidiInput2)) {
+            sendRealTimeMessage(messageType);
+          }
         }
         return; // Do not forward these messages
     }
