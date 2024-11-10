@@ -229,7 +229,7 @@ void setup() {
     pinMode(CLOCK_OUT_PIN, OUTPUT); // Set CLOCK_OUT_DIGITAL_PIN as output for digital clock
     pinMode(RESOLUTION_KNOB_PIN, INPUT); // Set RESOLUTION_KNOB_PIN as input for clock pulse rate knob
     pinMode(CLOCK_IN_PIN, INPUT_PULLUP); // Set CLOCK_IN_PIN as input with pullup for clock input pulses
-    pinMode(CLOCK_IN_PLUG_DETECT_PIN, INPUT); 
+    pinMode(CLOCK_IN_PLUG_DETECT_PIN, INPUT_PULLUP); 
     attachInterrupt(digitalPinToInterrupt(CLOCK_IN_PIN), clockInISR, RISING); // Attach interrupt for clock input pulses
   
     // Initialize Serial1, Serial2, and Serial3 for MIDI communication (31250 baud rate)
