@@ -15,6 +15,11 @@
 #define CLOCK_IN_PIN 3                   // Clock Input using Digital Pin
 #define CLOCK_IN_PLUG_DETECT_PIN A1       // Pin to detect if Clock In is plugged in
 
+// Bonus: Gameboy sync
+#define GB_CLOCK_PIN 22    // PORTA0
+#define GB_SO_PIN 23       // PORTA1
+#define GB_SI_PIN 24       // PORTA2
+
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 // MIDI instance for using Serial1, Serial2, and Serial3 as MIDI ports
@@ -92,6 +97,7 @@ void sendRealTimeMessage(byte messageType) {
             clockCount++; // BPM Counting clock
             MIDIOUTPUT.sendRealTime(midi::Clock);
             generateDigitalClockPulse(); // Generate digital clock pulse
+            sendClockPulseToLSDJ(); // send to GameBoy slave sync mode: MIDI
             break;
         case midi::Start:
             MIDIOUTPUT.sendRealTime(midi::Start);
@@ -187,6 +193,17 @@ void generateDigitalClockPulse() {
     }
 }
 
+// Generate digital clock pulse to gameboy
+// Basicaly sending 0101010101010101 each pulse
+// based Arduinoboy https://github.com/trash80/Arduinoboy/blob/master/Arduinoboy/Mode_LSDJ_SlaveSync.ino
+// Thanks to @trash80
+void sendClockPulseToLSDJ() {
+  for(int ticks = 0; ticks < 8; ticks++) {
+    digitalWrite(GB_CLOCK_PIN, LOW);
+    digitalWrite(GB_CLOCK_PIN, HIGH);
+  }
+}
+
 void handleClockOut() {
   unsigned long currentTime = millis();
   if (currentTime - lastPulseTime >= clockPulseInterval) { //5 millisecond non delay pulse out
@@ -230,6 +247,11 @@ void setup() {
     pinMode(CLOCK_IN_PIN, INPUT_PULLUP); // Set CLOCK_IN_PIN as input with pullup for clock input pulses
     pinMode(CLOCK_IN_PLUG_DETECT_PIN, INPUT_PULLUP); 
     attachInterrupt(digitalPinToInterrupt(CLOCK_IN_PIN), clockInISR, RISING); // Attach interrupt for clock input pulses
+
+    // GAMEBOY LINK
+    pinMode(GB_CLOCK_PIN, OUTPUT);
+    pinMode(GB_SI_PIN, INPUT);
+    pinMode(GB_SO_PIN, OUTPUT);
   
     // Initialize Serial1, Serial2, and Serial3 for MIDI communication (31250 baud rate)
     Serial1.begin(31250); // Initialize UART1 for MIDIINPUT1
