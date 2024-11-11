@@ -1,0 +1,23 @@
+My main goal is to create a MIDI merge device which have functionality:
+1. Core Function: Merges MIDI data from two MIDI inputs and sends it a MIDI output
+2. Master Clock Selection: An SPDT switch allows you to choose which MIDI input provides the master clock
+3. Analog Clock Output: Generates an analog clock signal synchronized with the MIDI clock
+4. Clock Pulse Rate: A knob to control the clock pulse per quarter note (1 to 24 ppqn) for the analog clock output
+5. Active Master Clock Display: Shows the active MIDI Input acting as the Master Clock on an OLED display
+6. BPM Display: Displays the Beats Per Minute (BPM) in 4/4 time signature based on selected master clock
+7. Clock Rate Display: based on the selected resolution setting
+8. Analog Clock Input: Override MIDI master clock
+
+Device Specifications:
+1. MEGA 2560 Pro
+2. 2 MIDI Input
+3. 2 MIDI Thru (corresponding from MIDI input)
+4. 4 MIDI Out (each transmitting MIDI Messages merged from both MIDI Input)
+5. 1 Toggle switch to choose Master Clock
+6. 1 Clock Output
+7. 1 Clock Input
+8. 1 128x32 OLED Display
+9. 1 DC Power Connector
+
+I've already have a working prototype and codes but I'd like an improvements.
+I'll show you the code on canvas.
