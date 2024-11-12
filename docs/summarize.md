@@ -1,12 +1,4 @@
 
-
-# rusaaKKMODS Megamidi Merge
-
-This project is designed to merge MIDI input from multiple sources, calculate beats per minute (BPM), and update clock resolution as needed.
-
-## Overview
------------
-
 ### 1. **Main Ideas and Initial Concepts**
    - The core idea is to build a MIDI merge device that merges MIDI data from two inputs and outputs through multiple channels. This device also manages a clock signal, providing precise timing and synchronization to connected MIDI equipment.
    - Key features include:
@@ -48,40 +40,4 @@ This project is designed to merge MIDI input from multiple sources, calculate be
      - Modularizing the code for better readability and maintenance, potentially splitting the MIDI handling, clock generation, and display functions into separate, reusable modules.
 
 Overall, the project has transformed from an initial concept into a sophisticated MIDI merging and clock management device. The integration of effective isolation, filtering, and protection measures—along with clean clock signal generation—has ensured reliable operation and precise MIDI timing. Moving forward, the focus will be on refining timing accuracy, enhancing modularity in the code, and finalizing the design for stability and usability in practical scenarios.
-
-
-### Features
-------------
-
-* Merges MIDI input from two sources (MIDI-1 and MIDI-2)
-* Calculates BPM from MIDI clock messages
-* Updates clock resolution based on user input
-* Displays current BPM, clock resolution, and master clock source on an OLED display
-
-
-### Dependencies
-------------
-
-* Arduino library (for `millis()` and `digitalRead()` functions)
-* MIDI library (for MIDI input and output handling)
-
-### Hardware Requirements
-----------------------
-
-* Arduino board with MEGA 2560
-* MIDI input and output interfaces
-* Toggle Switch to select Master
-* OLED display
-* Knob for changing clock resolution
-
-### Usage
------
-
-1. Upload the sketch to the Arduino board.
-2. Connect the MIDI input and output interfaces to the board.
-3. Connect the OLED display to the board.
-4. Toggle to select master MIDI.
-5. Plug Clock Out to your Clock In Synth.
-6. Rotate Knob to select Clock Rate.
-
 
