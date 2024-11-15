@@ -16,13 +16,14 @@
 #define MASTER_SWITCH_PIN 7
 #define CLOCK_OUT_PIN 8  // Clock Output using Digital Pin
 #define RESOLUTION_KNOB_PIN A0   //PIN 54       // Analog input pin for Clock Pulse Rate knob
-#define CLOCK_IN_PIN 3                   // Clock Input using Digital Pin
+#define CLOCK_IN_PIN 2                   // Clock Input using Digital Pin
 #define CLOCK_IN_PLUG_DETECT_PIN A1  //PIN 55     // Pin to detect if Clock In is plugged in
 
 // Bonus: Gameboy sync
-#define GB_CLOCK_PIN 22    // PORTA0
-#define GB_SO_PIN 23       // PORTA1
-#define GB_SI_PIN 24       // PORTA2
+#define GB_CLOCK_PIN PIN_PA0    // pin 22 PORTA0
+#define GB_SI_PIN PIN_PA1       // pin 23 PORTA1 // to Gameboy Serial Out
+#define GB_SO_PIN PIN_PA2       // pin 24 PORTA2 // to Gameboy Serial In
+
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
@@ -198,7 +199,7 @@ void generateDigitalClockPulse() {
 }
 
 // Generate digital clock pulse to gameboy
-// Basicaly sending 0101010101010101 each pulse
+// Using macro to PORTS
 // based Arduinoboy https://github.com/trash80/Arduinoboy/blob/master/Arduinoboy/Mode_LSDJ_SlaveSync.ino
 // Thanks to @trash80
 void sendClockPulseToLSDJ() {
